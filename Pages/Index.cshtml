@@ -1,0 +1,16 @@
+@page
+@model IndexModel
+@{
+    ViewData["Title"] = "MsgBox";
+}
+
+<div id="app" class="msgbox-root"></div>
+
+@section Scripts {
+    <script src="~/lib/react/react.development.js" asp-append-version="true"></script>
+    <script src="~/lib/react/react-dom.development.js" asp-append-version="true"></script>
+    <script src="~/lib/babel/babel.min.js" asp-append-version="true"></script>
+    <script src="~/js/api.js" asp-append-version="true"></script>
+    @* Single JSX entry so Babel does not race multiple external src transforms *@
+    <script type="text/babel" data-presets="react" src="~/js/msgbox-app.jsx" asp-append-version="true"></script>
+}

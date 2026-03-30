@@ -1,0 +1,62 @@
+# Build outputs
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+
+# Debug / Release
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Ll]ogs/
+
+# Visual Studio
+.vs/
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# NuGet
+*.nupkg
+*.snupkg
+**/packages/
+project.lock.json
+project.fragment.lock.json
+
+# MSTest / TestResults
+[Tt]est[Rr]esult*/
+*.trx
+
+# Local tooling / OS
+.DS_Store
+Thumbs.db
+
+# Local LiteDB database + sample thread (not migrations)
+# This app uses LiteDB, not EF migrations. The file Data/msgbox.db is created on
+# first run; DatabaseInitializer seeds John/Jane demo chats into an empty DB.
+# Ignore it so local/sample data is never committed.
+Data/*.db
+Data/*.db-shm
+Data/*.db-wal
+Data/msgbox-*.db
+**/msgbox.db
+
+# Uploaded files from local dev (subfolders recreated on startup)
+wwwroot/uploads/
+
+# User secrets / local-only config
+appsettings.*.local.json
+secrets.json
