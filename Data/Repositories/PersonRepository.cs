@@ -63,4 +63,16 @@ public class PersonRepository
         using var database = _db.Open();
         return database.GetCollection<Person>("people").Update(person);
     }
+
+    public Person? FindByAvatarPath(string storageKey)
+    {
+        var normalized = Services.UploadStorage.NormalizeStorageKey(storageKey);
+        if (string.IsNullOrEmpty(normalized))
+            return null;
+
+        using var database = _db.Open();
+        return database.GetCollection<Person>("people")
+            .FindAll()
+            .FirstOrDefault(p => Services.UploadStorage.NormalizeStorageKey(p.AvatarPath) == normalized);
+    }
 }

@@ -1,5 +1,5 @@
 using LiteDB;
-using Microsoft.Extensions.Options;
+using MsgBox.Services;
 
 namespace MsgBox.Data;
 
@@ -7,9 +7,9 @@ public class LiteDbContext
 {
     private readonly string _connectionString;
 
-    public LiteDbContext(IOptions<LiteDbOptions> options)
+    public LiteDbContext(AppStoragePaths paths)
     {
-        _connectionString = options.Value.ConnectionString;
+        _connectionString = $"Filename={paths.DatabasePath};Connection=shared";
     }
 
     public LiteDatabase Open() => new(_connectionString);

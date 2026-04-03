@@ -7,8 +7,13 @@ namespace MsgBox.Services;
 public class MessageDtoMapper
 {
     private readonly PersonRepository _people;
+    private readonly UploadStorage _uploads;
 
-    public MessageDtoMapper(PersonRepository people) => _people = people;
+    public MessageDtoMapper(PersonRepository people, UploadStorage uploads)
+    {
+        _people = people;
+        _uploads = uploads;
+    }
 
     public List<MessageUiDto> ToUiDtos(IEnumerable<Message> messages)
     {
@@ -36,19 +41,22 @@ public class MessageDtoMapper
                 DisplayName = author.DisplayName,
                 ForeColor = author.ForeColor,
                 BackColor = author.BackColor,
-                AvatarPath = author.AvatarPath
+                AvatarPath = string.IsNullOrWhiteSpace(author.AvatarPath) ? null : _uploads.GetInlineImageUrl(author.AvatarPath),
+                AvatarStorageKey = UploadStorage.NormalizeStorageKey(author.AvatarPath)
             },
             ImageFiles = m.ImageFiles.Select(f => new MessageFileDto
             {
                 FileName = f.FileName,
-                Path = f.Path,
+                Path = _uploads.GetInlineImageUrl(f.Path),
+                StorageKey = UploadStorage.NormalizeStorageKey(f.Path),
                 ContentType = f.ContentType,
                 SizeBytes = f.SizeBytes
             }).ToList(),
             Attachments = m.Attachments.Select(f => new MessageFileDto
             {
                 FileName = f.FileName,
-                Path = f.Path,
+                Path = _uploads.GetAttachmentUrl(f.Path),
+                StorageKey = UploadStorage.NormalizeStorageKey(f.Path),
                 ContentType = f.ContentType,
                 SizeBytes = f.SizeBytes
             }).ToList(),

@@ -8,22 +8,25 @@ namespace MsgBox.Services;
 public class DatabaseInitializer
 {
     private readonly LiteDbContext _context;
-    private readonly IWebHostEnvironment _env;
     private readonly MigrationRunner _migrations;
+    private readonly AppStoragePaths _paths;
 
-    public DatabaseInitializer(LiteDbContext context, IWebHostEnvironment env, MigrationRunner migrations)
+    public DatabaseInitializer(LiteDbContext context, AppStoragePaths paths, MigrationRunner migrations)
     {
         _context = context;
-        _env = env;
+        _paths = paths;
         _migrations = migrations;
     }
 
     public void EnsureFilesystem()
     {
-        Directory.CreateDirectory(Path.Combine(_env.ContentRootPath, "Data"));
-        Directory.CreateDirectory(Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", "avatars"));
-        Directory.CreateDirectory(Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", "images"));
-        Directory.CreateDirectory(Path.Combine(_env.WebRootPath ?? Path.Combine(_env.ContentRootPath, "wwwroot"), "uploads", "attachments"));
+        Directory.CreateDirectory(_paths.Root);
+        Directory.CreateDirectory(_paths.DataRoot);
+        Directory.CreateDirectory(_paths.UploadsRoot);
+        Directory.CreateDirectory(_paths.AvatarsRoot);
+        Directory.CreateDirectory(_paths.ImagesRoot);
+        Directory.CreateDirectory(_paths.AttachmentsRoot);
+        MigrateLegacyDataIfNeeded();
     }
 
     public void EnsureIndexesAndMigrate()
@@ -44,5 +47,32 @@ public class DatabaseInitializer
         db.GetCollection<AppSettings>("app_settings");
 
         _migrations.ApplyPending(db);
+    }
+
+    private void MigrateLegacyDataIfNeeded()
+    {
+        if (!File.Exists(_paths.DatabasePath) && File.Exists(_paths.LegacyDatabasePath))
+            File.Copy(_paths.LegacyDatabasePath, _paths.DatabasePath);
+
+        CopyLegacyFolderIfMissing("avatars", _paths.AvatarsRoot);
+        CopyLegacyFolderIfMissing("images", _paths.ImagesRoot);
+        CopyLegacyFolderIfMissing("attachments", _paths.AttachmentsRoot);
+    }
+
+    private void CopyLegacyFolderIfMissing(string folderName, string destinationRoot)
+    {
+        if (Directory.EnumerateFileSystemEntries(destinationRoot).Any())
+            return;
+
+        var legacyRoot = Path.Combine(_paths.LegacyUploadsRoot, folderName);
+        if (!Directory.Exists(legacyRoot))
+            return;
+
+        foreach (var file in Directory.EnumerateFiles(legacyRoot))
+        {
+            var dest = Path.Combine(destinationRoot, Path.GetFileName(file));
+            if (!File.Exists(dest))
+                File.Copy(file, dest);
+        }
     }
 }

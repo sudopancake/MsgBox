@@ -13,6 +13,7 @@ public class Person
     public string ForeColor { get; set; } = "#ffffff";
     public string BackColor { get; set; } = "#0d6efd";
     public string? AvatarPath { get; set; }
+    public string? AvatarPathContentType { get; set; }
     public DateTime CreatedUtc { get; set; }
     public DateTime UpdatedUtc { get; set; }
 }

@@ -7,18 +7,19 @@ namespace MsgBox.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[IgnoreAntiforgeryToken]
 public class ChatsController : ControllerBase
 {
     private readonly ChatRepository _chats;
     private readonly PersonRepository _people;
     private readonly MessageRepository _messages;
+    private readonly UploadStorage _uploads;
 
-    public ChatsController(ChatRepository chats, PersonRepository people, MessageRepository messages)
+    public ChatsController(ChatRepository chats, PersonRepository people, MessageRepository messages, UploadStorage uploads)
     {
         _chats = chats;
         _people = people;
         _messages = messages;
+        _uploads = uploads;
     }
 
     [HttpGet]
@@ -96,7 +97,8 @@ public class ChatsController : ControllerBase
                 DisplayName = p.DisplayName,
                 ForeColor = p.ForeColor,
                 BackColor = p.BackColor,
-                AvatarPath = p.AvatarPath,
+                AvatarPath = string.IsNullOrWhiteSpace(p.AvatarPath) ? null : _uploads.GetInlineImageUrl(p.AvatarPath),
+                AvatarStorageKey = UploadStorage.NormalizeStorageKey(p.AvatarPath),
                 CreatedUtc = p.CreatedUtc,
                 UpdatedUtc = p.UpdatedUtc
             })

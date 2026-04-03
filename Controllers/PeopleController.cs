@@ -7,7 +7,6 @@ namespace MsgBox.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[IgnoreAntiforgeryToken]
 public class PeopleController : ControllerBase
 {
     private readonly PersonRepository _people;
@@ -66,7 +65,11 @@ public class PeopleController : ControllerBase
         };
 
         if (avatar is { Length: > 0 })
-            person.AvatarPath = await _uploads.SaveFileAsync(avatar, "avatars", ct);
+        {
+            var saved = await _uploads.SaveImageAsync(avatar, "avatars", ct);
+            person.AvatarPath = saved.StorageKey;
+            person.AvatarPathContentType = saved.ContentType;
+        }
 
         _people.Insert(person);
         return CreatedAtAction(nameof(GetById), new { id = person.Id }, ToDto(person));
@@ -102,14 +105,21 @@ public class PeopleController : ControllerBase
             existing.BackColor = string.IsNullOrWhiteSpace(backColor) ? existing.BackColor : backColor.Trim();
 
         if (avatar is { Length: > 0 })
-            existing.AvatarPath = await _uploads.SaveFileAsync(avatar, "avatars", ct);
+        {
+            var oldAvatar = existing.AvatarPath;
+            var saved = await _uploads.SaveImageAsync(avatar, "avatars", ct);
+            existing.AvatarPath = saved.StorageKey;
+            existing.AvatarPathContentType = saved.ContentType;
+            if (!string.IsNullOrWhiteSpace(oldAvatar))
+                _uploads.TryDeleteUpload(oldAvatar);
+        }
 
         existing.UpdatedUtc = DateTime.UtcNow;
         _people.Update(existing);
         return ToDto(existing);
     }
 
-    private static PersonResponseDto ToDto(Person p) => new()
+    private PersonResponseDto ToDto(Person p) => new()
     {
         Id = p.Id,
         FirstName = p.FirstName,
@@ -117,7 +127,8 @@ public class PeopleController : ControllerBase
         DisplayName = p.DisplayName,
         ForeColor = p.ForeColor,
         BackColor = p.BackColor,
-        AvatarPath = p.AvatarPath,
+        AvatarPath = string.IsNullOrWhiteSpace(p.AvatarPath) ? null : _uploads.GetInlineImageUrl(p.AvatarPath),
+        AvatarStorageKey = UploadStorage.NormalizeStorageKey(p.AvatarPath),
         CreatedUtc = p.CreatedUtc,
         UpdatedUtc = p.UpdatedUtc
     };

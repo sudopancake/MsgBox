@@ -8,7 +8,6 @@ namespace MsgBox.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[IgnoreAntiforgeryToken]
 public class MessagesController : ControllerBase
 {
     private readonly MessageRepository _messages;
@@ -138,21 +137,23 @@ public class MessagesController : ControllerBase
 
         foreach (var path in ParsePathList(removeImagePathsJson))
         {
-            var file = existing.ImageFiles.FirstOrDefault(f => f.Path == path);
+            var normalized = UploadStorage.NormalizeStorageKey(path);
+            var file = existing.ImageFiles.FirstOrDefault(f => UploadStorage.NormalizeStorageKey(f.Path) == normalized);
             if (file != null)
             {
                 existing.ImageFiles.Remove(file);
-                _uploads.TryDeleteUpload(path);
+                _uploads.TryDeleteUpload(file.Path);
             }
         }
 
         foreach (var path in ParsePathList(removeAttachmentPathsJson))
         {
-            var file = existing.Attachments.FirstOrDefault(f => f.Path == path);
+            var normalized = UploadStorage.NormalizeStorageKey(path);
+            var file = existing.Attachments.FirstOrDefault(f => UploadStorage.NormalizeStorageKey(f.Path) == normalized);
             if (file != null)
             {
                 existing.Attachments.Remove(file);
-                _uploads.TryDeleteUpload(path);
+                _uploads.TryDeleteUpload(file.Path);
             }
         }
 
@@ -203,14 +204,14 @@ public class MessagesController : ControllerBase
                 ImageFiles = item.ImageFiles?.Select(f => new MessageFile
                 {
                     FileName = f.FileName,
-                    Path = f.Path,
+                    Path = string.IsNullOrWhiteSpace(f.StorageKey) ? UploadStorage.NormalizeStorageKey(f.Path) : UploadStorage.NormalizeStorageKey(f.StorageKey),
                     ContentType = f.ContentType,
                     SizeBytes = f.SizeBytes
                 }).ToList() ?? new List<MessageFile>(),
                 Attachments = item.Attachments?.Select(f => new MessageFile
                 {
                     FileName = f.FileName,
-                    Path = f.Path,
+                    Path = string.IsNullOrWhiteSpace(f.StorageKey) ? UploadStorage.NormalizeStorageKey(f.Path) : UploadStorage.NormalizeStorageKey(f.StorageKey),
                     ContentType = f.ContentType,
                     SizeBytes = f.SizeBytes
                 }).ToList() ?? new List<MessageFile>(),
@@ -226,25 +227,25 @@ public class MessagesController : ControllerBase
     {
         foreach (var file in images.Where(f => f.Length > 0))
         {
-            var path = await _uploads.SaveFileAsync(file, "images", ct);
+            var saved = await _uploads.SaveImageAsync(file, "images", ct);
             message.ImageFiles.Add(new MessageFile
             {
-                FileName = file.FileName,
-                Path = path,
-                ContentType = file.ContentType,
-                SizeBytes = file.Length
+                FileName = saved.FileName,
+                Path = saved.StorageKey,
+                ContentType = saved.ContentType,
+                SizeBytes = saved.SizeBytes
             });
         }
 
         foreach (var file in attachments.Where(f => f.Length > 0))
         {
-            var path = await _uploads.SaveFileAsync(file, "attachments", ct);
+            var saved = await _uploads.SaveAttachmentAsync(file, ct);
             message.Attachments.Add(new MessageFile
             {
-                FileName = file.FileName,
-                Path = path,
-                ContentType = file.ContentType,
-                SizeBytes = file.Length
+                FileName = saved.FileName,
+                Path = saved.StorageKey,
+                ContentType = saved.ContentType,
+                SizeBytes = saved.SizeBytes
             });
         }
     }

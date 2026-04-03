@@ -6,7 +6,6 @@ namespace MsgBox.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[IgnoreAntiforgeryToken]
 public class SettingsController : ControllerBase
 {
     private readonly SettingsRepository _settings;

@@ -60,4 +60,30 @@ public class MessageRepository
         using var database = _db.Open();
         return database.GetCollection<Message>("messages").Update(message);
     }
+
+    public MessageFile? FindImageFile(string storageKey)
+    {
+        var normalized = Services.UploadStorage.NormalizeStorageKey(storageKey);
+        if (string.IsNullOrEmpty(normalized))
+            return null;
+
+        using var database = _db.Open();
+        return database.GetCollection<Message>("messages")
+            .FindAll()
+            .SelectMany(m => m.ImageFiles)
+            .FirstOrDefault(f => Services.UploadStorage.NormalizeStorageKey(f.Path) == normalized);
+    }
+
+    public MessageFile? FindAttachmentFile(string storageKey)
+    {
+        var normalized = Services.UploadStorage.NormalizeStorageKey(storageKey);
+        if (string.IsNullOrEmpty(normalized))
+            return null;
+
+        using var database = _db.Open();
+        return database.GetCollection<Message>("messages")
+            .FindAll()
+            .SelectMany(m => m.Attachments)
+            .FirstOrDefault(f => Services.UploadStorage.NormalizeStorageKey(f.Path) == normalized);
+    }
 }

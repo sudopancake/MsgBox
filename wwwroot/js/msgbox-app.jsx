@@ -183,14 +183,14 @@ function MessageBubble({ message, isMe, onEdit }) {
       <div className={bubbleClass}>
         <div>{message.text}</div>
         {(message.imageFiles || []).map((img) => (
-          <div key={img.path}>
+          <div key={img.storageKey || img.path}>
             <a href={img.path} target="_blank" rel="noreferrer">
               <img className="msgbox-thumb" src={img.path} alt={img.fileName} />
             </a>
           </div>
         ))}
         {(message.attachments || []).map((f) => (
-          <div key={f.path}>
+          <div key={f.storageKey || f.path}>
             <a href={f.path} download={f.fileName}>
               {f.fileName}
             </a>
@@ -930,6 +930,10 @@ function EditMessageModal({ show, messageId, onClose, onSaved, chats, people }) 
     setMap((s) => ({ ...s, [path]: !s[path] }));
   }
 
+  function fileKey(file) {
+    return file.storageKey || file.path;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     setError("");
@@ -1031,13 +1035,13 @@ function EditMessageModal({ show, messageId, onClose, onSaved, chats, people }) 
                       <label className="form-label">Existing images — remove?</label>
                       <ul className="list-unstyled small mb-0">
                         {existingImages.map((img) => (
-                          <li key={img.path}>
+                          <li key={fileKey(img)}>
                             <label className="form-check">
                               <input
                                 className="form-check-input"
                                 type="checkbox"
-                                checked={!!removeImagePaths[img.path]}
-                                onChange={() => togglePathRemove(setRemoveImagePaths, img.path)}
+                                checked={!!removeImagePaths[fileKey(img)]}
+                                onChange={() => togglePathRemove(setRemoveImagePaths, fileKey(img))}
                               />
                               <span className="form-check-label">{img.fileName}</span>
                             </label>
@@ -1051,13 +1055,13 @@ function EditMessageModal({ show, messageId, onClose, onSaved, chats, people }) 
                       <label className="form-label">Existing attachments — remove?</label>
                       <ul className="list-unstyled small mb-0">
                         {existingAttachments.map((f) => (
-                          <li key={f.path}>
+                          <li key={fileKey(f)}>
                             <label className="form-check">
                               <input
                                 className="form-check-input"
                                 type="checkbox"
-                                checked={!!removeAttachmentPaths[f.path]}
-                                onChange={() => togglePathRemove(setRemoveAttachmentPaths, f.path)}
+                                checked={!!removeAttachmentPaths[fileKey(f)]}
+                                onChange={() => togglePathRemove(setRemoveAttachmentPaths, fileKey(f))}
                               />
                               <span className="form-check-label">{f.fileName}</span>
                             </label>

@@ -1,5 +1,12 @@
 (function () {
   window.MsgBoxApi = window.MsgBoxApi || {};
+  const csrfToken = document.getElementById("app")?.dataset?.csrfToken || "";
+
+  function requestHeaders(extra) {
+    const headers = { Accept: "application/json", ...(extra || {}) };
+    if (csrfToken) headers["X-CSRF-TOKEN"] = csrfToken;
+    return headers;
+  }
 
   function formatErrorBody(body, res) {
     if (body == null) return res.statusText || "Request failed";
@@ -42,14 +49,15 @@
   }
 
   MsgBoxApi.getJson = async function (url) {
-    const res = await fetch(url, { headers: { Accept: "application/json" } });
+    const res = await fetch(url, { headers: { Accept: "application/json" }, credentials: "same-origin" });
     return handleResponse(res);
   };
 
   MsgBoxApi.putJson = async function (url, data) {
     const res = await fetch(url, {
       method: "PUT",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: requestHeaders({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
       body: JSON.stringify(data),
     });
     return handleResponse(res);
@@ -58,7 +66,8 @@
   MsgBoxApi.postJson = async function (url, data) {
     const res = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      headers: requestHeaders({ "Content-Type": "application/json" }),
+      credentials: "same-origin",
       body: JSON.stringify(data),
     });
     return handleResponse(res);
@@ -67,6 +76,8 @@
   MsgBoxApi.postForm = async function (url, formData) {
     const res = await fetch(url, {
       method: "POST",
+      headers: requestHeaders(),
+      credentials: "same-origin",
       body: formData,
     });
     return handleResponse(res);
@@ -75,6 +86,8 @@
   MsgBoxApi.putForm = async function (url, formData) {
     const res = await fetch(url, {
       method: "PUT",
+      headers: requestHeaders(),
+      credentials: "same-origin",
       body: formData,
     });
     return handleResponse(res);

@@ -9,6 +9,7 @@ public class PersonResponseDto
     public string ForeColor { get; set; } = "";
     public string BackColor { get; set; } = "";
     public string? AvatarPath { get; set; }
+    public string? AvatarStorageKey { get; set; }
     public DateTime CreatedUtc { get; set; }
     public DateTime UpdatedUtc { get; set; }
 }
@@ -39,12 +40,14 @@ public class MessageAuthorDto
     public string ForeColor { get; set; } = "";
     public string BackColor { get; set; } = "";
     public string? AvatarPath { get; set; }
+    public string? AvatarStorageKey { get; set; }
 }
 
 public class MessageFileDto
 {
     public string FileName { get; set; } = "";
     public string Path { get; set; } = "";
+    public string StorageKey { get; set; } = "";
     public string? ContentType { get; set; }
     public long? SizeBytes { get; set; }
 }

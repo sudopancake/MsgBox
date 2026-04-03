@@ -4,7 +4,7 @@
     ViewData["Title"] = "MsgBox";
 }
 
-<div id="app" class="msgbox-root"></div>
+<div id="app" class="msgbox-root" data-csrf-token="@Model.AntiforgeryToken"></div>
 
 @section Scripts {
     <script src="~/lib/react/react.development.js" asp-append-version="true"></script>
